@@ -1,12 +1,13 @@
 """ReDesign AI — redesenha um cômodo a partir de uma foto, preservando a estrutura."""
 
+import io
 import os
 
 import streamlit as st
-from google import genai
-from google.genai import types
+from huggingface_hub import InferenceClient
 
-MODELO = "gemini-2.5-flash-image"
+# Modelo gratuito de edição de imagem por instrução (preserva a estrutura da cena).
+MODELO = "black-forest-labs/FLUX.1-Kontext-dev"
 
 # Estilos predefinidos (conceitos modernos). Nome exibido -> fragmento de prompt
 # em inglês (o modelo rende melhor com descrições de estilo em inglês).
@@ -64,16 +65,17 @@ INSTRUCAO_PRESERVACAO = (
 )
 
 
-def obter_cliente() -> genai.Client:
-    chave = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY"))
-    if not chave:
+def obter_cliente() -> InferenceClient:
+    token = st.secrets.get("HF_TOKEN", os.environ.get("HF_TOKEN"))
+    if not token:
         st.error(
-            "Chave da API do Gemini não configurada. Copie "
+            "Token da Hugging Face não configurado. Crie um token gratuito em "
+            "https://huggingface.co/settings/tokens, copie "
             "`.streamlit/secrets.toml.example` para `.streamlit/secrets.toml` "
-            "e preencha com sua chave (GEMINI_API_KEY)."
+            "e preencha com seu token (HF_TOKEN)."
         )
         st.stop()
-    return genai.Client(api_key=chave)
+    return InferenceClient(token=token)
 
 
 def montar_prompt(estilo: str | None, instrucoes: str) -> str:
@@ -87,26 +89,12 @@ def montar_prompt(estilo: str | None, instrucoes: str) -> str:
     return " ".join(partes)
 
 
-def redesenhar(
-    cliente: genai.Client, imagem_bytes: bytes, media_type: str, prompt: str
-) -> bytes:
-    """Envia a foto + prompt ao modelo e retorna os bytes da imagem gerada."""
-    resposta = cliente.models.generate_content(
-        model=MODELO,
-        contents=[
-            types.Part.from_bytes(data=imagem_bytes, mime_type=media_type),
-            prompt,
-        ],
-    )
-
-    for candidato in resposta.candidates or []:
-        conteudo = getattr(candidato, "content", None)
-        for parte in getattr(conteudo, "parts", None) or []:
-            dados = getattr(parte, "inline_data", None)
-            if dados and getattr(dados, "data", None):
-                return dados.data
-
-    raise ValueError("O modelo não retornou nenhuma imagem. Tente reformular as instruções.")
+def redesenhar(cliente: InferenceClient, imagem_bytes: bytes, prompt: str) -> bytes:
+    """Envia a foto + prompt ao modelo de edição e retorna os bytes PNG da imagem."""
+    imagem = cliente.image_to_image(imagem_bytes, prompt=prompt, model=MODELO)
+    buffer = io.BytesIO()
+    imagem.save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 def gerar_e_guardar(cliente: genai.Client) -> None:
@@ -119,11 +107,10 @@ def gerar_e_guardar(cliente: genai.Client) -> None:
         st.session_state.get("estilo_sel"),
         st.session_state.get("instrucoes", ""),
     )
-    media_type = st.session_state.get("foto_media_type", "image/jpeg")
 
     with st.spinner("Gerando o novo projeto do ambiente..."):
         try:
-            resultado = redesenhar(cliente, foto, media_type, prompt)
+            resultado = redesenhar(cliente, foto, prompt)
         except Exception as exc:  # noqa: BLE001 - exibe qualquer erro de API ao usuário
             st.error(f"Erro ao gerar a imagem: {exc}")
             return
@@ -151,7 +138,6 @@ def main() -> None:
 
     if foto is not None:
         st.session_state.foto_original = foto.getvalue()
-        st.session_state.foto_media_type = foto.type or "image/jpeg"
         # Nova foto invalida o resultado anterior.
         if foto.getvalue() != st.session_state.get("_ultima_foto"):
             st.session_state.resultado = None

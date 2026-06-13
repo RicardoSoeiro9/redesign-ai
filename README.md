@@ -6,9 +6,11 @@ devolve o **mesmo cômodo redesenhado**, preservando a estrutura (paredes,
 janelas, portas, perspectiva) e alterando apenas móveis, cores, decoração e
 iluminação.
 
-Feito com [Streamlit](https://streamlit.io/) e o modelo de imagem
-**Gemini 2.5 Flash Image** (`gemini-2.5-flash-image`, "nano banana") do Google,
-que tem um tier gratuito generoso (~500 imagens/dia).
+Feito com [Streamlit](https://streamlit.io/) e o modelo de edição de imagem
+**FLUX.1 Kontext** (`black-forest-labs/FLUX.1-Kontext-dev`), executado pela
+[Inference API gratuita da Hugging Face](https://huggingface.co/docs/inference-providers).
+É um modelo de edição por instrução, que altera a imagem preservando a estrutura
+da cena.
 
 ## Funcionalidades
 
@@ -29,17 +31,18 @@ que tem um tier gratuito generoso (~500 imagens/dia).
    pip install -r requirements.txt
    ```
 
-2. Crie uma chave gratuita da API do Gemini em
-   [Google AI Studio](https://aistudio.google.com/apikey).
+2. Crie um token gratuito da Hugging Face em
+   [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
+   (tipo *Read* já basta).
 
-3. Configure a chave: copie o arquivo de exemplo e preencha sua chave:
+3. Configure o token: copie o arquivo de exemplo e preencha:
 
    ```bash
    cp .streamlit/secrets.toml.example .streamlit/secrets.toml
    ```
 
-   Edite `.streamlit/secrets.toml` e coloque sua `GEMINI_API_KEY`.
-   (Alternativa: defina a variável de ambiente `GEMINI_API_KEY`.)
+   Edite `.streamlit/secrets.toml` e coloque seu `HF_TOKEN`.
+   (Alternativa: defina a variável de ambiente `HF_TOKEN`.)
 
 4. Rode o app:
 
