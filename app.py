@@ -1,123 +1,205 @@
 """ReDesign AI — redesenha um cômodo a partir de uma foto, preservando a estrutura."""
 
+import base64
 import io
 import os
+import time
 
+import requests
 import streamlit as st
-from huggingface_hub import InferenceClient
+from PIL import Image
 
-# Modelo gratuito de edição de imagem por instrução (preserva a estrutura da cena).
-MODELO = "black-forest-labs/FLUX.1-Kontext-dev"
+# AI Horde: rede comunitária e gratuita de GPUs (https://aihorde.net).
+API_HORDE = "https://stablehorde.net/api/v2"
+# Modelos realistas preferidos; a rede usa o primeiro disponível.
+MODELOS = [
+    "ICBINP - I Can't Believe It's Not Photography",
+    "Deliberate",
+    "stable_diffusion",
+]
+# Máx. 576 mantém o request dentro do limite gratuito/anônimo da AI Horde
+# (acima de 576x576 a rede exige "kudos", que contas novas/anônimas não têm).
+LADO_MAX = 576   # maior lado da imagem enviada (arredondado p/ múltiplo de 64)
+ESPERA_MAX = 360  # tempo máximo (s) aguardando a fila
 
-# Estilos predefinidos (conceitos modernos). Nome exibido -> fragmento de prompt
-# em inglês (o modelo rende melhor com descrições de estilo em inglês).
+# Estilos predefinidos (conceitos modernos). Nome exibido -> descrição (em inglês).
 ESTILOS = {
     "Japandi": (
-        "Japandi style: blend of Japanese minimalism and Scandinavian warmth, "
-        "low natural-wood furniture, calm neutral palette, clean lines, handcrafted "
-        "ceramics, soft diffuse lighting"
+        "Japandi style, blend of Japanese minimalism and Scandinavian warmth, "
+        "low natural-wood furniture, calm neutral palette, clean lines, soft diffuse lighting"
     ),
     "Minimalismo quente": (
-        "warm minimalism: few but high-quality pieces, warm earthy neutral tones "
+        "warm minimalism, few high-quality pieces, warm earthy neutral tones "
         "(beige, taupe, terracotta), soft natural textures, uncluttered, cozy"
     ),
     "Escandinavo": (
-        "modern Scandinavian: light woods, white and soft-grey walls, functional "
+        "modern Scandinavian, light woods, white and soft-grey walls, functional "
         "furniture, hygge coziness, wool and linen textiles, plenty of plants"
     ),
     "Boho moderno": (
-        "modern boho: layered textiles and rugs, rattan and cane furniture, lots of "
+        "modern boho, layered textiles and rugs, rattan and cane furniture, lots of "
         "plants, warm earthy tones, eclectic handcrafted decor, macramé accents"
     ),
     "Industrial moderno": (
-        "modern industrial: exposed brick and concrete accents, black metal and "
-        "reclaimed wood, dark moody palette, Edison-bulb and matte-black lighting"
+        "modern industrial, exposed brick and concrete accents, black metal and "
+        "reclaimed wood, dark moody palette, Edison-bulb lighting"
     ),
     "Mid-century modern": (
-        "mid-century modern: tapered-leg furniture, warm walnut wood, retro silhouettes, "
+        "mid-century modern, tapered-leg furniture, warm walnut wood, retro silhouettes, "
         "bold accent colors (mustard, teal, burnt orange), sleek and uncluttered"
     ),
     "Orgânico / Biofílico": (
-        "biophilic organic design: abundant indoor plants, natural materials (wood, "
-        "stone, jute), earthy organic palette, maximized natural light, fresh and airy"
+        "biophilic organic design, abundant indoor plants, natural materials (wood, "
+        "stone, jute), earthy organic palette, natural light, fresh and airy"
     ),
     "Maximalista": (
-        "modern maximalism: bold saturated colors, rich patterns, layered decor, "
-        "gallery walls, statement furniture, eclectic but curated and harmonious"
+        "modern maximalism, bold saturated colors, rich patterns, layered decor, "
+        "gallery walls, statement furniture, curated and harmonious"
     ),
     "Contemporâneo": (
-        "contemporary design: sleek and sophisticated, neutral base with bold accents, "
-        "current trends, clean lines, mix of textures, refined and elegant"
+        "contemporary design, sleek and sophisticated, neutral base with bold accents, "
+        "clean lines, mix of textures, refined and elegant"
     ),
     "Coastal moderno": (
-        "modern coastal: light blues, whites and sandy tones, breezy linen textiles, "
+        "modern coastal, light blues, whites and sandy tones, breezy linen textiles, "
         "natural light, relaxed beachy feel, rattan and light-wood furniture"
     ),
 }
 
-# Instrução-base (em inglês) SEMPRE enviada ao modelo. Pede uma transformação
-# claramente visível, no papel de designer de interiores, preservando a estrutura.
-INSTRUCAO_BASE = (
-    "You are an expert interior designer. Fully redecorate and restyle the room in "
-    "this photo with a clearly visible, professional makeover: replace and rearrange "
-    "the furniture, refresh the wall and floor finishes and colors, add tasteful "
-    "decoration and plants, improve the layout flow, storage and lighting. "
-    "IMPORTANT: keep the architecture unchanged — same walls, windows, doors, ceiling, "
-    "floor layout, room proportions, camera angle and perspective. The result must be "
-    "photorealistic and recognizably the SAME room, but visibly redesigned."
+# Descrição-base sempre aplicada (estilo Stable Diffusion). A preservação da
+# estrutura (paredes/janelas/portas) vem do método img2img, não do texto.
+PROMPT_BASE = (
+    "interior design photo of a beautifully redesigned room, photorealistic, "
+    "professional, cohesive decor, well lit, high quality, detailed"
 )
-
-# Usada quando o usuário não escolhe estilo nem digita instruções, para garantir
-# que algo mude (antes, sem direção, o modelo devolvia quase a mesma foto).
+NEGATIVO = (
+    "blurry, low quality, distorted, deformed, watermark, text, messy, "
+    "cluttered, ugly, bad proportions"
+)
+# Usada quando o usuário não escolhe estilo nem digita instruções.
 DIRECAO_PADRAO = (
-    "Use a modern, cozy contemporary style: warm neutral palette, quality furniture, "
-    "natural materials, plenty of plants and layered, inviting lighting."
+    "modern cozy contemporary style, warm neutral palette, quality furniture, "
+    "plants, layered inviting lighting"
 )
 
 
-def obter_cliente() -> InferenceClient:
-    token = st.secrets.get("HF_TOKEN", os.environ.get("HF_TOKEN"))
-    if not token:
-        st.error(
-            "Token da Hugging Face não configurado. Crie um token gratuito em "
-            "https://huggingface.co/settings/tokens, copie "
-            "`.streamlit/secrets.toml.example` para `.streamlit/secrets.toml` "
-            "e preencha com seu token (HF_TOKEN)."
-        )
-        st.stop()
-    return InferenceClient(token=token)
+def obter_chave() -> str:
+    """Chave da AI Horde; cai para a anônima (0000000000) se nada for configurado."""
+    return st.secrets.get(
+        "AIHORDE_API_KEY", os.environ.get("AIHORDE_API_KEY", "0000000000")
+    )
 
 
 def montar_prompt(estilo: str | None, instrucoes: str) -> str:
-    """Combina a instrução-base + estilo + instruções do usuário num único prompt."""
+    """Combina a base + estilo + instruções num prompt descritivo (com negativo)."""
     instrucoes = (instrucoes or "").strip()
-    partes = [INSTRUCAO_BASE]
-    if estilo and estilo in ESTILOS:
-        partes.append(f"Apply this style — {estilo}: {ESTILOS[estilo]}.")
+    tem_estilo = bool(estilo and estilo in ESTILOS)
+    partes = [PROMPT_BASE]
+    if tem_estilo:
+        partes.append(ESTILOS[estilo])
     if instrucoes:
-        partes.append(f"Also follow these user requests: {instrucoes}.")
-    if not (estilo and estilo in ESTILOS) and not instrucoes:
+        partes.append(instrucoes)
+    if not tem_estilo and not instrucoes:
         partes.append(DIRECAO_PADRAO)
-    return " ".join(partes)
+    return ", ".join(partes) + " ### " + NEGATIVO
 
 
-def redesenhar(cliente: InferenceClient, imagem_bytes: bytes, prompt: str) -> bytes:
-    """Envia a foto + prompt ao modelo de edição e retorna os bytes PNG da imagem."""
-    # guidance_scale mais alto = o modelo segue o prompt com mais força (mais mudança);
-    # mais passos = mais qualidade/detalhe.
-    imagem = cliente.image_to_image(
-        imagem_bytes,
-        prompt=prompt,
-        model=MODELO,
-        guidance_scale=3.5,
-        num_inference_steps=30,
-    )
+def _preparar_imagem(imagem_bytes: bytes) -> tuple[str, int, int]:
+    """Redimensiona (múltiplo de 64, máx. LADO_MAX) e devolve base64 WebP + dimensões."""
+    img = Image.open(io.BytesIO(imagem_bytes)).convert("RGB")
+    largura, altura = img.size
+    escala = min(1.0, LADO_MAX / max(largura, altura))
+    nova_l = max(64, (round(largura * escala) // 64) * 64)
+    nova_a = max(64, (round(altura * escala) // 64) * 64)
+    img = img.resize((nova_l, nova_a))
     buffer = io.BytesIO()
-    imagem.save(buffer, format="PNG")
+    img.save(buffer, format="WEBP", quality=90)
+    return base64.b64encode(buffer.getvalue()).decode(), nova_l, nova_a
+
+
+def _mensagem_erro(resposta: requests.Response) -> str:
+    try:
+        msg = resposta.json().get("message", resposta.text)
+    except ValueError:
+        msg = resposta.text
+    if resposta.status_code == 401:
+        return "Chave da AI Horde inválida. Confira o AIHORDE_API_KEY."
+    if resposta.status_code == 429:
+        return "Muitas requisições na AI Horde agora. Aguarde alguns segundos e tente de novo."
+    return f"Erro da AI Horde ({resposta.status_code}): {msg}"
+
+
+def redesenhar(chave: str, imagem_bytes: bytes, prompt: str, atualizar=None) -> bytes:
+    """Faz o img2img na AI Horde (assíncrono + polling) e retorna os bytes PNG."""
+    src_b64, largura, altura = _preparar_imagem(imagem_bytes)
+    headers = {"apikey": chave, "Client-Agent": "redesign-ai:1.0:streamlit"}
+    payload = {
+        "prompt": prompt,
+        "source_image": src_b64,
+        "source_processing": "img2img",
+        "params": {
+            "denoising_strength": 0.6,  # mantém o layout e restiliza o ambiente
+            "steps": 28,
+            "cfg_scale": 7.0,
+            "sampler_name": "k_euler_a",
+            "width": largura,
+            "height": altura,
+            "n": 1,
+        },
+        "models": MODELOS,
+    }
+
+    resp = requests.post(
+        f"{API_HORDE}/generate/async", json=payload, headers=headers, timeout=30
+    )
+    if resp.status_code != 202:
+        raise RuntimeError(_mensagem_erro(resp))
+    job_id = resp.json()["id"]
+
+    inicio = time.time()
+    while time.time() - inicio < ESPERA_MAX:
+        time.sleep(5)
+        check = requests.get(
+            f"{API_HORDE}/generate/check/{job_id}", headers=headers, timeout=30
+        ).json()
+        if check.get("faulted"):
+            raise RuntimeError("A geração falhou na rede AI Horde. Tente novamente.")
+        if check.get("done"):
+            break
+        if atualizar:
+            atualizar(
+                f"Na fila da AI Horde… posição {check.get('queue_position', 0)}, "
+                f"~{check.get('wait_time', 0)}s restantes"
+            )
+    else:
+        requests.delete(
+            f"{API_HORDE}/generate/status/{job_id}", headers=headers, timeout=10
+        )
+        raise TimeoutError(
+            "A fila da AI Horde está demorando demais agora. Tente novamente em "
+            "instantes (uma chave própria da Horde dá mais prioridade)."
+        )
+
+    status = requests.get(
+        f"{API_HORDE}/generate/status/{job_id}", headers=headers, timeout=30
+    ).json()
+    geracoes = status.get("generations") or []
+    if not geracoes:
+        raise RuntimeError("A AI Horde não retornou nenhuma imagem. Tente novamente.")
+
+    ref = geracoes[0]["img"]
+    dados = (
+        requests.get(ref, timeout=60).content
+        if ref.startswith("http")
+        else base64.b64decode(ref)
+    )
+    img = Image.open(io.BytesIO(dados)).convert("RGB")
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
     return buffer.getvalue()
 
 
-def gerar_e_guardar(cliente: InferenceClient) -> None:
+def gerar_e_guardar(chave: str) -> None:
     foto = st.session_state.get("foto_original")
     if foto is None:
         st.warning("Envie ou tire uma foto do cômodo primeiro.")
@@ -128,12 +210,15 @@ def gerar_e_guardar(cliente: InferenceClient) -> None:
         st.session_state.get("instrucoes", ""),
     )
 
-    with st.spinner("Gerando o novo projeto do ambiente..."):
-        try:
-            resultado = redesenhar(cliente, foto, prompt)
-        except Exception as exc:  # noqa: BLE001 - exibe qualquer erro de API ao usuário
-            st.error(f"Erro ao gerar a imagem: {exc}")
-            return
+    try:
+        with st.status("Enviando para a AI Horde…") as status:
+            resultado = redesenhar(
+                chave, foto, prompt, atualizar=lambda m: status.update(label=m)
+            )
+            status.update(label="Imagem gerada!", state="complete")
+    except Exception as exc:  # noqa: BLE001 - exibe qualquer erro ao usuário
+        st.error(f"Erro ao gerar a imagem: {exc}")
+        return
 
     st.session_state.resultado = resultado
 
@@ -189,19 +274,16 @@ def main() -> None:
         label_visibility="collapsed",
     )
     st.caption(
-        "ℹ️ Uma instrução-base de redesenho profissional é sempre aplicada "
-        "(preservando paredes, janelas e portas). O estilo e o texto acima são "
-        "somados a ela. Se você não preencher nada, é usado um estilo contemporâneo padrão."
+        "ℹ️ Uma descrição-base de redesenho é sempre aplicada e a estrutura "
+        "(paredes, janelas e portas) é preservada pelo método img2img. O estilo e o "
+        "texto acima são somados. Sem nada preenchido, usa-se um estilo contemporâneo padrão."
     )
-
-    cliente_holder = {}
 
     if st.button("✨ Gerar projeto", type="primary", use_container_width=True):
         if st.session_state.get("foto_original") is None:
             st.warning("Envie ou tire uma foto do cômodo primeiro.")
         else:
-            cliente_holder["c"] = obter_cliente()
-            gerar_e_guardar(cliente_holder["c"])
+            gerar_e_guardar(obter_chave())
 
     resultado = st.session_state.get("resultado")
     if resultado:
@@ -226,7 +308,7 @@ def main() -> None:
             )
         with col_var:
             if st.button("🔁 Gerar nova variação", use_container_width=True):
-                gerar_e_guardar(obter_cliente())
+                gerar_e_guardar(obter_chave())
                 st.rerun()
 
 
