@@ -55,13 +55,23 @@ ESTILOS = {
     ),
 }
 
-INSTRUCAO_PRESERVACAO = (
-    "You are an expert interior designer. Redesign the room shown in this photo. "
-    "CRITICAL: keep the architecture identical — do not move or change the walls, "
-    "windows, doors, ceiling, floor layout, room dimensions, camera angle or "
-    "perspective. Only change the furniture, colors, materials, textiles, decoration, "
-    "wall finishes and lighting. The result must look like the SAME room, "
-    "photorealistic, professionally redesigned."
+# Instrução-base (em inglês) SEMPRE enviada ao modelo. Pede uma transformação
+# claramente visível, no papel de designer de interiores, preservando a estrutura.
+INSTRUCAO_BASE = (
+    "You are an expert interior designer. Fully redecorate and restyle the room in "
+    "this photo with a clearly visible, professional makeover: replace and rearrange "
+    "the furniture, refresh the wall and floor finishes and colors, add tasteful "
+    "decoration and plants, improve the layout flow, storage and lighting. "
+    "IMPORTANT: keep the architecture unchanged — same walls, windows, doors, ceiling, "
+    "floor layout, room proportions, camera angle and perspective. The result must be "
+    "photorealistic and recognizably the SAME room, but visibly redesigned."
+)
+
+# Usada quando o usuário não escolhe estilo nem digita instruções, para garantir
+# que algo mude (antes, sem direção, o modelo devolvia quase a mesma foto).
+DIRECAO_PADRAO = (
+    "Use a modern, cozy contemporary style: warm neutral palette, quality furniture, "
+    "natural materials, plenty of plants and layered, inviting lighting."
 )
 
 
@@ -79,19 +89,29 @@ def obter_cliente() -> InferenceClient:
 
 
 def montar_prompt(estilo: str | None, instrucoes: str) -> str:
-    partes = [INSTRUCAO_PRESERVACAO]
-    if estilo and estilo in ESTILOS:
-        partes.append(f"Target style — {estilo}: {ESTILOS[estilo]}.")
+    """Combina a instrução-base + estilo + instruções do usuário num único prompt."""
     instrucoes = (instrucoes or "").strip()
+    partes = [INSTRUCAO_BASE]
+    if estilo and estilo in ESTILOS:
+        partes.append(f"Apply this style — {estilo}: {ESTILOS[estilo]}.")
     if instrucoes:
-        partes.append(f"Additional user preferences: {instrucoes}.")
-    partes.append("Output only the redesigned image.")
+        partes.append(f"Also follow these user requests: {instrucoes}.")
+    if not (estilo and estilo in ESTILOS) and not instrucoes:
+        partes.append(DIRECAO_PADRAO)
     return " ".join(partes)
 
 
 def redesenhar(cliente: InferenceClient, imagem_bytes: bytes, prompt: str) -> bytes:
     """Envia a foto + prompt ao modelo de edição e retorna os bytes PNG da imagem."""
-    imagem = cliente.image_to_image(imagem_bytes, prompt=prompt, model=MODELO)
+    # guidance_scale mais alto = o modelo segue o prompt com mais força (mais mudança);
+    # mais passos = mais qualidade/detalhe.
+    imagem = cliente.image_to_image(
+        imagem_bytes,
+        prompt=prompt,
+        model=MODELO,
+        guidance_scale=3.5,
+        num_inference_steps=30,
+    )
     buffer = io.BytesIO()
     imagem.save(buffer, format="PNG")
     return buffer.getvalue()
@@ -167,6 +187,11 @@ def main() -> None:
         "Descreva suas preferências",
         placeholder="Ex.: tons neutros, sofá cinza, mais plantas, iluminação aconchegante",
         label_visibility="collapsed",
+    )
+    st.caption(
+        "ℹ️ Uma instrução-base de redesenho profissional é sempre aplicada "
+        "(preservando paredes, janelas e portas). O estilo e o texto acima são "
+        "somados a ela. Se você não preencher nada, é usado um estilo contemporâneo padrão."
     )
 
     cliente_holder = {}
