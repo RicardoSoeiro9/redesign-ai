@@ -97,7 +97,7 @@ def redesenhar(cliente: InferenceClient, imagem_bytes: bytes, prompt: str) -> by
     return buffer.getvalue()
 
 
-def gerar_e_guardar(cliente: genai.Client) -> None:
+def gerar_e_guardar(cliente: InferenceClient) -> None:
     foto = st.session_state.get("foto_original")
     if foto is None:
         st.warning("Envie ou tire uma foto do cômodo primeiro.")
