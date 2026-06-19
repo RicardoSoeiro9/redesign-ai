@@ -1,0 +1,53 @@
+table JurosReal
+	lineageTag: a3bc0df3-c9a5-43ea-a3f8-f8d97a23c83a
+
+	column Titulo
+		dataType: string
+		lineageTag: ef6c7cc6-8e5b-4bae-9c4b-f1a19ea71602
+		summarizeBy: none
+		sourceColumn: Titulo
+
+		annotation SummarizationSetBy = Automatic
+
+	column Modalidade
+		dataType: string
+		lineageTag: f0d5356d-d745-4935-9ae0-fa2838c4c4b1
+		summarizeBy: none
+		sourceColumn: Modalidade
+
+		annotation SummarizationSetBy = Automatic
+
+	column Cenario
+		dataType: string
+		lineageTag: 16332335-5284-4c8a-94c8-00a99737d3d4
+		summarizeBy: none
+		sourceColumn: Cenario
+
+		annotation SummarizationSetBy = Automatic
+
+	column Taxa
+		dataType: double
+		formatString: 0.00%
+		lineageTag: d1050639-0c8f-46d8-a318-cdd24e272ac8
+		summarizeBy: sum
+		sourceColumn: Taxa
+
+		annotation SummarizationSetBy = Automatic
+
+	partition JurosReal = m
+		mode: import
+		source =
+				let
+					Fonte = Csv.Document(File.Contents(PastaDados & "\juros_real.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Cabecalho = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true]),
+					Tipado = Table.TransformColumnTypes(Cabecalho, {
+						{"Titulo", type text},
+						{"Modalidade", type text},
+						{"Cenario", type text},
+						{"Taxa", type number}
+					})
+				in
+					Tipado
+
+
+	annotation PBI_ResultType = Table

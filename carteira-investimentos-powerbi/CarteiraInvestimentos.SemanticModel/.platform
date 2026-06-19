@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "CarteiraInvestimentos"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "2b6d3663-70af-4ef3-8049-772682d98c16"
+  }
+}

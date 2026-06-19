@@ -1,0 +1,75 @@
+table Fato_Valores
+	lineageTag: 0cdfd13a-623a-48b1-91b8-4086e8a7fd35
+
+	measure 'Valor na Data' = SUM(Fato_Valores[Valor])
+		formatString: #,0.00
+		lineageTag: 435ce423-dd20-4d2a-8233-40fb875d036a
+		displayFolder: 1 Carteira
+
+	measure 'Patrimônio Atual' = VAR _ultima = CALCULATE(MAX(Fato_Valores[Data]), ALLSELECTED(Fato_Valores)) RETURN CALCULATE(SUM(Fato_Valores[Valor]), Fato_Valores[Data] = _ultima)
+		formatString: #,0.00
+		lineageTag: 417c9acf-3f13-489e-ad3b-2f8246047e83
+		displayFolder: 1 Carteira
+
+	measure 'Patrimônio na Data Inicial' = VAR _primeira = CALCULATE(MIN(Fato_Valores[Data]), ALLSELECTED(Fato_Valores)) RETURN CALCULATE(SUM(Fato_Valores[Valor]), Fato_Valores[Data] = _primeira)
+		formatString: #,0.00
+		lineageTag: 9fc2a427-3b47-44b2-9c7e-140d48c0e058
+		displayFolder: 1 Carteira
+
+	measure 'Variação Patrimônio (R$)' = [Patrimônio Atual] - [Patrimônio na Data Inicial]
+		formatString: #,0.00
+		lineageTag: 7bbeeb65-6cfc-45f5-9a2f-3b8824d32142
+		displayFolder: 1 Carteira
+
+	measure 'Variação Patrimônio (%)' = DIVIDE([Variação Patrimônio (R$)], [Patrimônio na Data Inicial])
+		formatString: 0.00%
+		lineageTag: 5622f74c-3b12-4f45-a756-e8fd8ebb5b6d
+		displayFolder: 1 Carteira
+
+	measure 'Qtde de Ativos' = DISTINCTCOUNT(Fato_Valores[Ativo_ID])
+		formatString: #,0
+		lineageTag: 454d4dd3-bd12-4a1e-a5ac-bc839f71a353
+		displayFolder: 1 Carteira
+
+	column Ativo_ID
+		dataType: int64
+		lineageTag: 4f722263-d3dd-4904-8a40-ce18896cfaa0
+		summarizeBy: none
+		sourceColumn: Ativo_ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Data
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 6f9023b6-e53e-40d7-b9aa-02b1d74577dd
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+	column Valor
+		dataType: double
+		formatString: #,0.00
+		lineageTag: e9f6015f-cf10-4dc7-ab7d-44e36f356380
+		summarizeBy: sum
+		sourceColumn: Valor
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Fato_Valores = m
+		mode: import
+		source =
+				let
+					Fonte = Csv.Document(File.Contents(PastaDados & "\fato_valores.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Cabecalho = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true]),
+					Tipado = Table.TransformColumnTypes(Cabecalho, {
+						{"Ativo_ID", Int64.Type},
+						{"Data", type date},
+						{"Valor", type number}
+					})
+				in
+					Tipado
+
+
+	annotation PBI_ResultType = Table

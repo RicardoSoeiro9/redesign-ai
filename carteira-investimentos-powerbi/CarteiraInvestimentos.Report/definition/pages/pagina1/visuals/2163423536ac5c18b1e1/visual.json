@@ -1,0 +1,82 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "2163423536ac5c18b1e1",
+  "position": {
+    "x": 952,
+    "y": 16,
+    "z": 5,
+    "width": 312,
+    "height": 416,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Ativo"
+                    }
+                  },
+                  "Property": "Indexador"
+                }
+              },
+              "queryRef": "Dim_Ativo.Indexador",
+              "nativeQueryRef": "Indexador"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fato_Valores"
+                    }
+                  },
+                  "Property": "Patrimônio Atual"
+                }
+              },
+              "queryRef": "Fato_Valores.Patrimônio Atual",
+              "nativeQueryRef": "Patrimônio Atual"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Patrimônio por Indexador'"
+                }
+              }
+            },
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

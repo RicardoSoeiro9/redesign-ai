@@ -1,0 +1,165 @@
+table Dim_Ativo
+	lineageTag: eecefa5f-c052-4d3a-b935-a40bed95cbc7
+
+	column Ativo_ID
+		dataType: int64
+		lineageTag: e4e78294-2477-4ad0-8293-1ed0612c50be
+		summarizeBy: none
+		sourceColumn: Ativo_ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tipo
+		dataType: string
+		lineageTag: 6580e265-5a52-48d5-b6b2-8530df769077
+		summarizeBy: none
+		sourceColumn: Tipo
+
+		annotation SummarizationSetBy = Automatic
+
+	column Papel
+		dataType: string
+		lineageTag: c840b540-b9a3-431c-a106-2f24ec9f38a0
+		summarizeBy: none
+		sourceColumn: Papel
+
+		annotation SummarizationSetBy = Automatic
+
+	column SubTipo
+		dataType: string
+		lineageTag: cd2f47b3-f64d-4700-bf35-7a3e47ebe0ba
+		summarizeBy: none
+		sourceColumn: SubTipo
+
+		annotation SummarizationSetBy = Automatic
+
+	column Indexador
+		dataType: string
+		lineageTag: 3c17a13b-48e6-4f8e-9039-6dd15f935b5a
+		summarizeBy: none
+		sourceColumn: Indexador
+
+		annotation SummarizationSetBy = Automatic
+
+	column TaxaContratada
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 2b66dbc4-116d-42ae-96c9-30fbb540e4c4
+		summarizeBy: none
+		sourceColumn: TaxaContratada
+
+		annotation SummarizationSetBy = Automatic
+
+	column Fundo
+		dataType: string
+		lineageTag: 703bfdfe-08bc-481f-8047-8effdb0d05c5
+		summarizeBy: none
+		sourceColumn: Fundo
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataCompra
+		dataType: string
+		lineageTag: 9ef74f63-2fdc-4760-8577-5f77edfde97f
+		summarizeBy: none
+		sourceColumn: DataCompra
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dias
+		dataType: int64
+		lineageTag: 91f02c90-778c-4077-8bda-372215b4c904
+		summarizeBy: none
+		sourceColumn: Dias
+
+		annotation SummarizationSetBy = Automatic
+
+	column Vencimento
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: ecc7520a-afe4-4204-a146-8014ce2d90fb
+		summarizeBy: none
+		sourceColumn: Vencimento
+
+		annotation SummarizationSetBy = Automatic
+
+	column Data2
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 73c8d3b6-ed57-4411-a458-30344c57b091
+		summarizeBy: none
+		sourceColumn: Data2
+
+		annotation SummarizationSetBy = Automatic
+
+	column AplicAtual
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 5a796677-24c0-4e91-957c-85bf14d9b4b8
+		summarizeBy: none
+		sourceColumn: AplicAtual
+
+		annotation SummarizationSetBy = Automatic
+
+	column AplicInicial
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 32be88d4-c348-427c-b8ac-f3bd5efd6678
+		summarizeBy: none
+		sourceColumn: AplicInicial
+
+		annotation SummarizationSetBy = Automatic
+
+	column Corretora
+		dataType: string
+		lineageTag: 08a976df-5e34-40e8-9803-64597b4c7f4c
+		summarizeBy: none
+		sourceColumn: Corretora
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoria
+		dataType: string
+		lineageTag: aa9f5cac-1045-46eb-a89d-17dad5640de1
+		summarizeBy: none
+		sourceColumn: Categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column Banco
+		dataType: string
+		lineageTag: b84e24e8-80a6-43af-b4e5-3bbf8a8bef68
+		summarizeBy: none
+		sourceColumn: Banco
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Ativo = m
+		mode: import
+		source =
+				let
+					Fonte = Csv.Document(File.Contents(PastaDados & "\dim_ativo.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Cabecalho = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true]),
+					Tipado = Table.TransformColumnTypes(Cabecalho, {
+						{"Ativo_ID", Int64.Type},
+						{"Tipo", type text},
+						{"Papel", type text},
+						{"SubTipo", type text},
+						{"Indexador", type text},
+						{"TaxaContratada", type number},
+						{"Fundo", type text},
+						{"DataCompra", type text},
+						{"Dias", Int64.Type},
+						{"Vencimento", type date},
+						{"Data2", type date},
+						{"AplicAtual", type number},
+						{"AplicInicial", type number},
+						{"Corretora", type text},
+						{"Categoria", type text},
+						{"Banco", type text}
+					})
+				in
+					Tipado
+
+
+	annotation PBI_ResultType = Table

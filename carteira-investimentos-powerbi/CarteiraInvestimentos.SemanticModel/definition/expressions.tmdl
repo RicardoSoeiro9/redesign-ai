@@ -1,0 +1,4 @@
+/// Pasta onde estão os arquivos CSV exportados da planilha (a subpasta "data" deste projeto).
+/// Ajuste este parâmetro no Power BI Desktop (Transformar dados > Gerenciar Parâmetros)
+/// para o caminho absoluto da pasta "data" na sua máquina, depois clique em Atualizar.
+expression PastaDados = "C:\Projetos\carteira-investimentos-powerbi\data" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]

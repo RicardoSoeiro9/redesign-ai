@@ -1,0 +1,61 @@
+﻿Titulo,Modalidade,Cenario,Taxa
+CDB/Tesouro/LF,Pré-Fixado,2 anos,0.115
+CDB/Tesouro/LF,Pré-Fixado,2 anos,0.04775
+CDB/Tesouro/LF,Pré-Fixado,3 anos,0.14
+CDB/Tesouro/LF,Pré-Fixado,3 anos,0.069
+CDB/Tesouro/LF,Pré-Fixado,3 anos,0.137
+CDB/Tesouro/LF,Pré-Fixado,Min.2an,0.135
+CDB/Tesouro/LF,Pré-Fixado,2 anos,0.1315
+CDB/Tesouro/LF,Pré-Fixado,2 anos,0.135
+CDB/Tesouro/LF,Pré-Fixado,3 anos,0.134
+CDB/Tesouro/LF,Pré-Fixado,3 anos,0.14
+CDB/Tesouro/LF,Pós Fixado,2 anos,1.27
+CDB/Tesouro/LF,Pós Fixado,2 anos,0.09843125000000001
+CDB/Tesouro/LF,Pós Fixado,3 anos,1.25
+CDB/Tesouro/LF,Pós Fixado,3 anos,0.09609374999999999
+CDB/Tesouro/LF,Pós Fixado,3 anos,1.25
+CDB/Tesouro/LF,Pós Fixado,Min.2an,1.24
+CDB/Tesouro/LF,Pós Fixado,2 anos,1.13
+CDB/Tesouro/LF,Pós Fixado,2 anos,1.145
+CDB/Tesouro/LF,Pós Fixado,3 anos,1.15
+CDB/Tesouro/LF,Pós Fixado,3 anos,1.25
+CDB/Tesouro/LF,IPCA +,2 anos,0.0831
+CDB/Tesouro/LF,IPCA +,2 anos,0.063135
+CDB/Tesouro/LF,IPCA +,3 anos,0.0806
+CDB/Tesouro/LF,IPCA +,3 anos,0.061009999999999995
+CDB/Tesouro/LF,IPCA +,3 anos,0.063
+CDB/Tesouro/LF,IPCA +,Min.2an,0.06
+CDB/Tesouro/LF,IPCA +,2 anos,0.064
+CDB/Tesouro/LF,IPCA +,2 anos,0.0644
+CDB/Tesouro/LF,IPCA +,3 anos,0.062
+CDB/Tesouro/LF,IPCA +,3 anos,0.0672
+LCA/LCI/CRA/CRI,Pré-Fixado,2 anos,0.1286
+LCA/LCI/CRA/CRI,Pré-Fixado,2 anos,0.07859999999999999
+LCA/LCI/CRA/CRI,Pré-Fixado,3 anos,0.1165
+LCA/LCI/CRA/CRI,Pré-Fixado,3 anos,0.0665
+LCA/LCI/CRA/CRI,Pré-Fixado,3 anos,0.11
+LCA/LCI/CRA/CRI,Pré-Fixado,Min.2an,0.1145
+LCA/LCI/CRA/CRI,Pré-Fixado,2 anos,0.0975
+LCA/LCI/CRA/CRI,Pré-Fixado,2 anos,0.1186
+LCA/LCI/CRA/CRI,Pré-Fixado,3 anos,0.1115
+LCA/LCI/CRA/CRI,Pré-Fixado,3 anos,0.1165
+LCA/LCI/CRA/CRI,Pós Fixado,2 anos,0.955
+LCA/LCI/CRA/CRI,Pós Fixado,2 anos,0.0813125
+LCA/LCI/CRA/CRI,Pós Fixado,3 anos,1.0
+LCA/LCI/CRA/CRI,Pós Fixado,3 anos,0.08750000000000001
+LCA/LCI/CRA/CRI,Pós Fixado,3 anos,1.0
+LCA/LCI/CRA/CRI,Pós Fixado,Min.2an,1.04
+LCA/LCI/CRA/CRI,Pós Fixado,2 anos,0.97
+LCA/LCI/CRA/CRI,Pós Fixado,2 anos,0.97
+LCA/LCI/CRA/CRI,Pós Fixado,3 anos,1.0
+LCA/LCI/CRA/CRI,Pós Fixado,3 anos,1.0
+LCA/LCI/CRA/CRI,IPCA +,2 anos,0.0685
+LCA/LCI/CRA/CRI,IPCA +,2 anos,0.0685
+LCA/LCI/CRA/CRI,IPCA +,3 anos,0.045
+LCA/LCI/CRA/CRI,IPCA +,3 anos,0.045
+LCA/LCI/CRA/CRI,IPCA +,3 anos,0.035
+LCA/LCI/CRA/CRI,IPCA +,Min.2an,0.04
+LCA/LCI/CRA/CRI,IPCA +,2 anos,0.0385
+LCA/LCI/CRA/CRI,IPCA +,2 anos,0.0395
+LCA/LCI/CRA/CRI,IPCA +,3 anos,0.043
+LCA/LCI/CRA/CRI,IPCA +,3 anos,0.045

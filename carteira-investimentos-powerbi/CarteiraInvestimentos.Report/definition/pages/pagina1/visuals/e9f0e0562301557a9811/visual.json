@@ -1,0 +1,148 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "e9f0e0562301557a9811",
+  "position": {
+    "x": 16,
+    "y": 448,
+    "z": 6,
+    "width": 924,
+    "height": 256,
+    "tabOrder": 6
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fato_PosicoesAcoes"
+                    }
+                  },
+                  "Property": "Ativo"
+                }
+              },
+              "queryRef": "Fato_PosicoesAcoes.Ativo",
+              "nativeQueryRef": "Ativo"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fato_PosicoesAcoes"
+                    }
+                  },
+                  "Property": "Segmento"
+                }
+              },
+              "queryRef": "Fato_PosicoesAcoes.Segmento",
+              "nativeQueryRef": "Segmento"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fato_PosicoesAcoes"
+                    }
+                  },
+                  "Property": "Quantidade"
+                }
+              },
+              "queryRef": "Fato_PosicoesAcoes.Quantidade",
+              "nativeQueryRef": "Quantidade"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fato_PosicoesAcoes"
+                    }
+                  },
+                  "Property": "Investido (Ações/FII)"
+                }
+              },
+              "queryRef": "Fato_PosicoesAcoes.Investido (Ações/FII)",
+              "nativeQueryRef": "Investido (Ações/FII)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fato_PosicoesAcoes"
+                    }
+                  },
+                  "Property": "Atualizado (Ações/FII)"
+                }
+              },
+              "queryRef": "Fato_PosicoesAcoes.Atualizado (Ações/FII)",
+              "nativeQueryRef": "Atualizado (Ações/FII)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fato_PosicoesAcoes"
+                    }
+                  },
+                  "Property": "L/P (Ações/FII)"
+                }
+              },
+              "queryRef": "Fato_PosicoesAcoes.L/P (Ações/FII)",
+              "nativeQueryRef": "L/P (Ações/FII)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fato_PosicoesAcoes"
+                    }
+                  },
+                  "Property": "Rentabilidade (Ações/FII) %"
+                }
+              },
+              "queryRef": "Fato_PosicoesAcoes.Rentabilidade (Ações/FII) %",
+              "nativeQueryRef": "Rentabilidade (Ações/FII) %"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Posições de Ações e FIIs'"
+                }
+              }
+            },
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

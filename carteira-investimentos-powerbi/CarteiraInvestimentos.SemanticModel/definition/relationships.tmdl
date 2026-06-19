@@ -1,0 +1,7 @@
+relationship eec91458-201e-4b12-801a-218f40161d6c
+	fromColumn: Fato_Valores.Ativo_ID
+	toColumn: Dim_Ativo.Ativo_ID
+
+relationship 4fa6c2be-21b0-42db-b03c-01dbe24bbabd
+	fromColumn: Fato_Valores.Data
+	toColumn: Dim_Calendario.Date

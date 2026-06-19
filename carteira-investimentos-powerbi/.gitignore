@@ -1,0 +1,15 @@
+# Power BI Desktop / PBIP
+.pbi/
+*.pbix
+*.Report/.pbi/localSettings.json
+**/.pbi/localSettings.json
+**/cache.abf
+
+# Sistema
+.DS_Store
+Thumbs.db
+~$*
+
+# Python
+__pycache__/
+*.pyc

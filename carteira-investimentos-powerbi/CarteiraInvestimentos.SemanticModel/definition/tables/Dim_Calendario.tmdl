@@ -1,0 +1,73 @@
+table Dim_Calendario
+	lineageTag: 194896cd-4a86-4fd6-a136-4d67284f24c6
+	dataCategory: Time
+
+	column Date
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: c6f9631e-a656-4de9-9ed6-ca73d8b93b9f
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ano
+		dataType: int64
+		lineageTag: b6ca7148-fc03-46e3-864c-109476c55cde
+		summarizeBy: none
+		sourceColumn: Ano
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mês
+		dataType: int64
+		lineageTag: 0b5089de-ca10-406f-b74d-9008c1323782
+		summarizeBy: none
+		sourceColumn: Mês
+
+		annotation SummarizationSetBy = Automatic
+
+	column NomeMês
+		dataType: string
+		lineageTag: 95fb9836-15c2-4aae-a0df-aeb164451933
+		summarizeBy: none
+		sourceColumn: NomeMês
+
+		annotation SummarizationSetBy = Automatic
+
+	column AnoMês
+		dataType: string
+		lineageTag: 0faf23b7-9a6e-4e43-8d27-a752592a210a
+		summarizeBy: none
+		sourceColumn: AnoMês
+
+		annotation SummarizationSetBy = Automatic
+
+	column Trimestre
+		dataType: string
+		lineageTag: 84390865-7418-4171-a767-6c3f9f24929f
+		summarizeBy: none
+		sourceColumn: Trimestre
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Calendario = m
+		mode: import
+		source =
+				let
+					Inicio = #date(2024,1,1),
+					Fim = #date(2026,12,31),
+					Dias = Duration.Days(Fim - Inicio) + 1,
+					Lista = List.Dates(Inicio, Dias, #duration(1,0,0,0)),
+					Tabela = Table.FromList(Lista, Splitter.SplitByNothing(), {"Date"}),
+					TipoData = Table.TransformColumnTypes(Tabela, {{"Date", type date}}),
+					ComAno = Table.AddColumn(TipoData, "Ano", each Date.Year([Date]), Int64.Type),
+					ComMes = Table.AddColumn(ComAno, "Mês", each Date.Month([Date]), Int64.Type),
+					ComNomeMes = Table.AddColumn(ComMes, "NomeMês", each Date.ToText([Date], "MMM", "pt-BR"), type text),
+					ComAnoMes = Table.AddColumn(ComNomeMes, "AnoMês", each Date.ToText([Date], "yyyy-MM"), type text),
+					ComTri = Table.AddColumn(ComAnoMes, "Trimestre", each "T" & Text.From(Date.QuarterOfYear([Date])), type text)
+				in
+					ComTri
+
+
+	annotation PBI_ResultType = Table

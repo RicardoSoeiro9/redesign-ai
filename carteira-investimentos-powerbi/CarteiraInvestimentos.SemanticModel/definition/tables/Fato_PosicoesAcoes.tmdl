@@ -1,0 +1,164 @@
+table Fato_PosicoesAcoes
+	lineageTag: 674df80b-6869-4712-944d-398d867584d9
+
+	measure 'Investido (Ações/FII)' = SUM(Fato_PosicoesAcoes[Investido])
+		formatString: #,0.00
+		lineageTag: 073903df-26a0-40f3-8e94-69885e6e0a53
+		displayFolder: 2 Ações e FIIs
+
+	measure 'Atualizado (Ações/FII)' = SUM(Fato_PosicoesAcoes[Atualizado])
+		formatString: #,0.00
+		lineageTag: 6fc8244f-0cd6-45e8-b5c9-681c336e7805
+		displayFolder: 2 Ações e FIIs
+
+	measure 'L/P (Ações/FII)' = SUM(Fato_PosicoesAcoes[LucroPrejuizo])
+		formatString: #,0.00
+		lineageTag: f191dd95-f1aa-40b3-b8dc-6e65a95d34f1
+		displayFolder: 2 Ações e FIIs
+
+	measure 'Rentabilidade (Ações/FII) %' = DIVIDE([L/P (Ações/FII)], [Investido (Ações/FII)])
+		formatString: 0.00%
+		lineageTag: 4c1b9f07-450e-4930-bbea-46d60e176f29
+		displayFolder: 2 Ações e FIIs
+
+	measure 'Dividendos (Ações/FII)' = SUM(Fato_PosicoesAcoes[Dividendos])
+		formatString: #,0.00
+		lineageTag: 4118b4d6-d4c9-4de1-9eb5-9f324608d718
+		displayFolder: 2 Ações e FIIs
+
+	measure 'Yield Médio (Ações/FII)' = AVERAGE(Fato_PosicoesAcoes[YieldTotal])
+		formatString: 0.00%
+		lineageTag: 4007d986-7d86-4edd-9129-627b93a1d42f
+		displayFolder: 2 Ações e FIIs
+
+	column Ativo
+		dataType: string
+		lineageTag: 8b9facd3-918a-40f9-9322-b20e76d35516
+		summarizeBy: none
+		sourceColumn: Ativo
+
+		annotation SummarizationSetBy = Automatic
+
+	column Segmento
+		dataType: string
+		lineageTag: a218fd6b-25fe-402f-a0f1-fdbd8b027640
+		summarizeBy: none
+		sourceColumn: Segmento
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantidade
+		dataType: double
+		formatString: #,0
+		lineageTag: afc55868-4a18-430d-a825-44ecd7b9842f
+		summarizeBy: sum
+		sourceColumn: Quantidade
+
+		annotation SummarizationSetBy = Automatic
+
+	column PrecoMedio
+		dataType: double
+		formatString: #,0.00
+		lineageTag: c43675ff-3f04-445c-8bf7-4c435bed673c
+		summarizeBy: none
+		sourceColumn: PrecoMedio
+
+		annotation SummarizationSetBy = Automatic
+
+	column PrecoAtual
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 57ce8251-6c09-45f7-94bd-6e18c56e356c
+		summarizeBy: none
+		sourceColumn: PrecoAtual
+
+		annotation SummarizationSetBy = Automatic
+
+	column Investido
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 7c9cfae7-2e2d-42dd-bc71-31e4f7ff2ea9
+		summarizeBy: sum
+		sourceColumn: Investido
+
+		annotation SummarizationSetBy = Automatic
+
+	column Atualizado
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 430a7eb4-7187-4ead-87af-1ad3538605b5
+		summarizeBy: sum
+		sourceColumn: Atualizado
+
+		annotation SummarizationSetBy = Automatic
+
+	column LucroPrejuizo
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 72c56aea-137a-45c4-af6d-25deba284269
+		summarizeBy: sum
+		sourceColumn: LucroPrejuizo
+
+		annotation SummarizationSetBy = Automatic
+
+	column Variacao
+		dataType: double
+		formatString: 0.00%
+		lineageTag: ef29d670-dd8f-4204-88f3-67d9f85ed702
+		summarizeBy: none
+		sourceColumn: Variacao
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dividendos
+		dataType: double
+		formatString: #,0.00
+		lineageTag: f554f354-9814-426a-a07c-4dc19effdc86
+		summarizeBy: sum
+		sourceColumn: Dividendos
+
+		annotation SummarizationSetBy = Automatic
+
+	column YieldBruto
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 84dd0df4-ed43-442c-a6c6-6296efcbe10f
+		summarizeBy: none
+		sourceColumn: YieldBruto
+
+		annotation SummarizationSetBy = Automatic
+
+	column YieldTotal
+		dataType: double
+		formatString: 0.00%
+		lineageTag: b5b5243f-4a2c-4201-9cd5-76b74c250901
+		summarizeBy: none
+		sourceColumn: YieldTotal
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Fato_PosicoesAcoes = m
+		mode: import
+		source =
+				let
+					Fonte = Csv.Document(File.Contents(PastaDados & "\fato_posicoes_acoes.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Cabecalho = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true]),
+					Tipado = Table.TransformColumnTypes(Cabecalho, {
+						{"Ativo", type text},
+						{"Segmento", type text},
+						{"Quantidade", type number},
+						{"PrecoMedio", type number},
+						{"PrecoAtual", type number},
+						{"Investido", type number},
+						{"Atualizado", type number},
+						{"LucroPrejuizo", type number},
+						{"Variacao", type number},
+						{"Dividendos", type number},
+						{"YieldBruto", type number},
+						{"YieldTotal", type number}
+					})
+				in
+					Tipado
+
+
+	annotation PBI_ResultType = Table

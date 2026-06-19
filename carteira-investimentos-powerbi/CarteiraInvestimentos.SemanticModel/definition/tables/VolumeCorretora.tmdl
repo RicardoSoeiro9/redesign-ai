@@ -1,0 +1,35 @@
+table VolumeCorretora
+	lineageTag: 5924889e-3fae-44b3-a7a6-345bee01e07b
+
+	column Corretora
+		dataType: string
+		lineageTag: 21c55ebc-1658-45d2-a70f-541a23de8d81
+		summarizeBy: none
+		sourceColumn: Corretora
+
+		annotation SummarizationSetBy = Automatic
+
+	column Volume
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 656fa560-84e6-44f9-8571-283726f2afe2
+		summarizeBy: sum
+		sourceColumn: Volume
+
+		annotation SummarizationSetBy = Automatic
+
+	partition VolumeCorretora = m
+		mode: import
+		source =
+				let
+					Fonte = Csv.Document(File.Contents(PastaDados & "\volume_corretora.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Cabecalho = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true]),
+					Tipado = Table.TransformColumnTypes(Cabecalho, {
+						{"Corretora", type text},
+						{"Volume", type number}
+					})
+				in
+					Tipado
+
+
+	annotation PBI_ResultType = Table

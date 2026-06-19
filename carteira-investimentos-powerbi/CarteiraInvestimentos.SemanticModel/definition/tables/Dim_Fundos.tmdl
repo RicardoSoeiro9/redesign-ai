@@ -1,0 +1,121 @@
+table Dim_Fundos
+	lineageTag: 257ac6f4-aaf4-4124-9704-5d68d8ba87d5
+
+	column Fundo
+		dataType: string
+		lineageTag: d99041ba-d7d2-4495-94bf-28c3f918206c
+		summarizeBy: none
+		sourceColumn: Fundo
+
+		annotation SummarizationSetBy = Automatic
+
+	column CNPJ
+		dataType: string
+		lineageTag: d049d6d5-8356-425e-8895-c27ec3199131
+		summarizeBy: none
+		sourceColumn: CNPJ
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClassificacaoXP
+		dataType: string
+		lineageTag: 9a448bf8-8e3d-4626-b872-51805574610c
+		summarizeBy: none
+		sourceColumn: ClassificacaoXP
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClassificacaoCVM
+		dataType: string
+		lineageTag: 18ec6a44-4fdf-41b8-904e-f1058f0dbb7b
+		summarizeBy: none
+		sourceColumn: ClassificacaoCVM
+
+		annotation SummarizationSetBy = Automatic
+
+	column InicioFundo
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: acef0750-7aec-4d1e-94cc-5fd2af6ce8d7
+		summarizeBy: none
+		sourceColumn: InicioFundo
+
+		annotation SummarizationSetBy = Automatic
+
+	column PatrimonioLiquido
+		dataType: double
+		formatString: #,0
+		lineageTag: d2e19472-98d3-4efe-9783-8f5d2fc57886
+		summarizeBy: none
+		sourceColumn: PatrimonioLiquido
+
+		annotation SummarizationSetBy = Automatic
+
+	column Benchmark
+		dataType: string
+		lineageTag: b865e281-559a-4fe3-8b39-82698ebe8101
+		summarizeBy: none
+		sourceColumn: Benchmark
+
+		annotation SummarizationSetBy = Automatic
+
+	column PLMedio12M
+		dataType: double
+		formatString: #,0
+		lineageTag: 5f950ab5-4b3f-4045-bc8b-09ac85791808
+		summarizeBy: none
+		sourceColumn: PLMedio12M
+
+		annotation SummarizationSetBy = Automatic
+
+	column TaxaAdm
+		dataType: double
+		formatString: 0.00
+		lineageTag: 74400a60-a8ba-4ee9-bd29-f87a4f6402e3
+		summarizeBy: none
+		sourceColumn: TaxaAdm
+
+		annotation SummarizationSetBy = Automatic
+
+	column TaxaMaxAdm
+		dataType: double
+		formatString: 0.00
+		lineageTag: 639c2a97-5e9e-49ae-9d1d-0148e512b948
+		summarizeBy: none
+		sourceColumn: TaxaMaxAdm
+
+		annotation SummarizationSetBy = Automatic
+
+	column TaxaPerformance
+		dataType: double
+		formatString: 0.00
+		lineageTag: 0761b3c3-233d-4c00-911b-6d03fcf12da1
+		summarizeBy: none
+		sourceColumn: TaxaPerformance
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Fundos = m
+		mode: import
+		source =
+				let
+					Fonte = Csv.Document(File.Contents(PastaDados & "\dim_fundos.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Cabecalho = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true]),
+					Tipado = Table.TransformColumnTypes(Cabecalho, {
+						{"Fundo", type text},
+						{"CNPJ", type text},
+						{"ClassificacaoXP", type text},
+						{"ClassificacaoCVM", type text},
+						{"InicioFundo", type date},
+						{"PatrimonioLiquido", type number},
+						{"Benchmark", type text},
+						{"PLMedio12M", type number},
+						{"TaxaAdm", type number},
+						{"TaxaMaxAdm", type number},
+						{"TaxaPerformance", type number}
+					})
+				in
+					Tipado
+
+
+	annotation PBI_ResultType = Table

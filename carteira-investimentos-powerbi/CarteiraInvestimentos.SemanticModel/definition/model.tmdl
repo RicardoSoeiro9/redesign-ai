@@ -1,0 +1,22 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: pt-BR
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+	annotation PBIDesktopVersion = 2.130.0.0
+
+	annotation PBI_QueryOrder = ["PastaDados","Dim_Ativo","Fato_Valores","Fato_PosicoesAcoes","Dim_Fundos","JurosReal","VolumeCorretora","Dim_Calendario"]
+
+	annotation PBI_ProTooling = ["DevMode"]
+
+	ref table Dim_Ativo
+	ref table Fato_Valores
+	ref table Fato_PosicoesAcoes
+	ref table Dim_Fundos
+	ref table JurosReal
+	ref table VolumeCorretora
+	ref table Dim_Calendario
