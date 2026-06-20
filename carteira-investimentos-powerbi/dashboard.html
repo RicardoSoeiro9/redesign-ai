@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carteira de Investimentos</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f1117; color: #e0e0e0; min-height: 100vh; }
+
+  header {
+    background: linear-gradient(135deg, #1a1f2e 0%, #0d1321 100%);
+    border-bottom: 1px solid #2a3050;
+    padding: 20px 32px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  header h1 { font-size: 1.5rem; font-weight: 700; color: #fff; }
+  header span { font-size: 0.85rem; color: #6b7aaa; margin-top: 2px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 28px 24px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .kpi {
+    background: #1a1f2e;
+    border: 1px solid #2a3050;
+    border-radius: 12px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 12px 12px 0 0;
+  }
+  .kpi.green::before { background: linear-gradient(90deg, #4ade80, #22c55e); }
+  .kpi.blue::before  { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+  .kpi.yellow::before { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+  .kpi.red::before   { background: linear-gradient(90deg, #f87171, #ef4444); }
+  .kpi.purple::before { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
+
+  .kpi-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: .08em; color: #6b7aaa; margin-bottom: 8px; }
+  .kpi-value { font-size: 1.65rem; font-weight: 700; color: #fff; line-height: 1; }
+  .kpi-sub { font-size: 0.78rem; color: #6b7aaa; margin-top: 6px; }
+  .badge { display: inline-block; font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; margin-top: 6px; }
+  .badge.up { background: #14532d; color: #4ade80; }
+  .badge.down { background: #450a0a; color: #f87171; }
+
+  .charts-row { display: grid; gap: 16px; margin-bottom: 16px; }
+  .charts-row.three { grid-template-columns: 2fr 1fr 1fr; }
+
+  .card {
+    background: #1a1f2e;
+    border: 1px solid #2a3050;
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #6b7aaa;
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  .chart-wrap { position: relative; }
+  .chart-wrap canvas { max-width: 100%; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  thead th {
+    text-align: left; padding: 8px 12px;
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em;
+    color: #6b7aaa; border-bottom: 1px solid #2a3050; white-space: nowrap;
+  }
+  thead th.num { text-align: right; }
+  tbody tr { border-bottom: 1px solid #1e2540; transition: background .15s; }
+  tbody tr:hover { background: #1e2540; }
+  tbody td { padding: 9px 12px; color: #d0d8f0; white-space: nowrap; }
+  tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pos { color: #4ade80; font-weight: 600; }
+  .neg { color: #f87171; font-weight: 600; }
+  .seg-badge {
+    display: inline-block; font-size: 0.68rem; padding: 2px 7px;
+    border-radius: 999px; background: #1e2d40; color: #7cb9f5; border: 1px solid #2a4060;
+  }
+
+  footer { text-align: center; padding: 24px; color: #3a4464; font-size: 0.75rem; }
+
+  @media (max-width: 900px) {
+    .charts-row.three { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="dot"></div>
+  <div>
+    <h1>Carteira de Investimentos</h1>
+    <span>Atualizado em 16/06/2026</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="kpis">
+    <div class="kpi green">
+      <div class="kpi-label">Patrimônio Atual</div>
+      <div class="kpi-value">R$ 4,13 M</div>
+      <div class="kpi-sub">R$ 4.133.725,32</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">Variação desde jan/24</div>
+      <div class="kpi-value">+119,3%</div>
+      <span class="badge up">▲ R$ 2.248.925,53</span>
+    </div>
+    <div class="kpi yellow">
+      <div class="kpi-label">Patrimônio Inicial (jan/24)</div>
+      <div class="kpi-value">R$ 1,88 M</div>
+      <div class="kpi-sub">R$ 1.884.799,79</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-label">L/P Ações &amp; FIIs</div>
+      <div class="kpi-value" style="color:#f87171">-R$ 6.673</div>
+      <div class="kpi-sub">Posição: R$ 400.554</div>
+    </div>
+    <div class="kpi purple">
+      <div class="kpi-label">Ativos na carteira</div>
+      <div class="kpi-value">134</div>
+      <div class="kpi-sub">21 posições em ações/FIIs</div>
+    </div>
+  </div>
+
+  <div class="charts-row three">
+    <div class="card">
+      <div class="card-title">Evolução Patrimonial</div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="chartEvolucao"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Alocação por Categoria</div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="chartCategoria"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Volume por Corretora</div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="chartCorretora"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-row" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-title">Patrimônio por Indexador</div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="chartIndexador"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Posições de Ações e FIIs</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Ativo</th><th>Segmento</th>
+            <th class="num">Qtd</th><th class="num">P. Médio</th><th class="num">P. Atual</th>
+            <th class="num">Investido</th><th class="num">Atualizado</th>
+            <th class="num">L/P (R$)</th><th class="num">Var (%)</th><th class="num">Dividendos</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyAcoes"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<footer>Carteira de Investimentos — dados exportados da planilha em 16/06/2026</footer>
+
+<script>
+const D = {
+  evolucao_datas: ["2024-01-06","2024-01-13","2024-01-20","2024-01-27","2024-01-30","2024-02-03","2024-02-10","2024-02-17","2024-02-24","2024-03-01","2024-03-09","2024-03-16","2024-03-23","2024-03-30","2024-04-06","2024-04-13","2024-04-20","2024-05-01","2024-05-04","2024-05-11","2024-05-18","2024-05-25","2024-06-01","2024-06-08","2024-06-15","2024-06-22","2024-06-29","2024-07-06","2024-07-13","2024-07-20","2024-07-27","2024-08-01","2024-08-13","2024-08-17","2024-08-24","2024-09-02","2024-09-07","2024-09-30","2024-10-05","2024-10-18","2024-10-25","2024-11-01","2024-11-09","2024-11-16","2024-11-23","2024-11-30","2024-12-07","2024-12-14","2024-12-21","2024-12-28","2024-12-31","2025-01-09","2025-01-17","2025-01-24","2025-01-31","2025-02-10","2025-02-17","2025-02-22","2025-03-01","2025-03-08","2025-03-12","2025-03-21","2025-03-28","2025-03-31","2025-04-05","2025-04-15","2025-04-19","2025-04-28","2025-05-01","2025-05-10","2025-05-19","2025-05-27","2025-06-01","2025-06-07","2025-06-13","2025-06-20","2025-06-27","2025-07-01","2025-07-12","2025-07-17","2025-07-28","2025-08-01","2025-08-12","2025-08-22","2025-08-29","2025-09-09","2025-09-19","2025-10-01","2025-10-25","2025-10-31","2025-11-10","2025-11-21","2025-11-28","2025-12-12","2025-12-19","2026-01-01","2026-01-24","2026-01-30","2026-02-16","2026-02-27","2026-03-09","2026-03-20","2026-03-31","2026-04-17","2026-05-01","2026-05-13","2026-05-30","2026-06-09","2026-06-16"],
+  evolucao_valores: [1884799.79,1888209.68,1940945.07,1941634.93,1943386.59,1939626.08,1947895.78,1952952.94,1962207.81,1965076.69,1964341.67,1965983.31,1969045.68,1967650.15,1971807.82,1971585.42,1999769.83,2000360.9,2003237.42,2008573.53,2018662.09,2008400.61,2038740.24,2049743.79,2056334.45,2056708.07,2075076.37,2076969.51,2084120.85,2083107.92,2083445.63,2083735.49,2101712.45,2096495.64,2103302.02,2112208.2,2110079.83,2116997.94,2125702.97,2211304.66,2232959.6,2246392.47,2263188.55,2262802.67,2293388.48,2306914.27,2295455.62,2295344.08,2283459.48,2294980.34,2296595.93,2300552.57,2306149.25,2327908.23,2358028.42,2401897.37,2417522.05,2423660.15,2425571.26,2521131.34,2586576.95,2721860.11,2734756.65,2733870.03,2731372.03,2832271.42,2826394.41,2845074.89,2838014.73,2845503.23,2896072.56,2893278.46,2904466.53,2909060.82,2915792.73,2905728.67,2916304.68,2941213.16,2963490.08,2973699.73,2976149.7,2989534.97,3013154.86,3038980.37,3053344.4,3064459.95,3119313.38,3116132.99,3148069.0,3183556.75,3209696.08,3244720.42,3260207.46,3293738.64,3299106.62,3343471.87,3493878.21,3537852.08,3573428.09,3659341.03,4057261.45,4041161.61,4048837.55,4119869.3,4082408.8,4087370.37,4106527.88,4131309.89,4133725.32],
+  cat_labels: ["Previdência","Fundo","CDB","Ações","Imóveis","Debenture","CRA","TD","Fundo Cetipado","CRI","Dólar","COE","CC"],
+  cat_valores: [1061205.08,883797.51,403530.08,382870.42,289999.95,200400.29,225050.42,169731.73,158631.18,154756.13,139193.45,53868.06,10691.02],
+  idx_labels: ["IPCA","Crédito Privado","MM","Ações","Selic","Outros","Imóvel","Dólar","Pré Fixado","Infra","COE","Logística","CC"],
+  idx_valores: [885292.74,700947.51,688852.42,382870.42,377747.31,372352.66,289999.95,159530.92,93842.38,92156.32,53868.06,25573.61,10691.02],
+  corretoras: [{"nome":"BTG","valor":2182474.98},{"nome":"Itaú","valor":1522056.95},{"nome":"Imóveis","valor":289999.95},{"nome":"Avenue","valor":139193.45}],
+  acoes: [{"ativo":"BRCO11","segmento":"Galpões Logísticos","qtd":"134.0","pm":116.22,"pa":112.69,"inv":15573.36,"atu":15100.46,"lp":-472.90,"var":-0.0304,"div":127.3},{"ativo":"BTLG11","segmento":"Galpões Logísticos","qtd":"200.0","pm":96.05,"pa":102.74,"inv":19209.87,"atu":20548.00,"lp":1338.13,"var":0.0697,"div":162.0},{"ativo":"CPTI11","segmento":"FI-Infra","qtd":"140.0","pm":97.77,"pa":86.88,"inv":13688.18,"atu":12163.20,"lp":-1524.98,"var":-0.1114,"div":161.0},{"ativo":"GARE11","segmento":"Híbrido","qtd":"2500.0","pm":8.59,"pa":8.15,"inv":21481.43,"atu":20375.00,"lp":-1106.43,"var":-0.0515,"div":207.5},{"ativo":"MALL11","segmento":"Shopping Centers","qtd":"160.0","pm":101.72,"pa":103.99,"inv":16274.82,"atu":16638.40,"lp":363.58,"var":0.0223,"div":160.0},{"ativo":"PVBI11","segmento":"Lajes Corporativas","qtd":"120.0","pm":73.41,"pa":73.70,"inv":8808.68,"atu":8844.00,"lp":35.32,"var":0.0040,"div":48.0},{"ativo":"RBVA11","segmento":"Renda Urbana","qtd":"2470.0","pm":96.86,"pa":8.89,"inv":23924.31,"atu":21958.30,"lp":-1966.01,"var":-0.0822,"div":222.3},{"ativo":"RBRR11","segmento":"Papel CRIs","qtd":"100.0","pm":99.22,"pa":78.53,"inv":9922.47,"atu":7853.00,"lp":-2069.47,"var":-0.2086,"div":90.0},{"ativo":"RZTR11","segmento":"Agronegócio","qtd":"195.0","pm":104.08,"pa":89.79,"inv":20295.83,"atu":17509.05,"lp":-2786.78,"var":-0.1373,"div":195.0},{"ativo":"TRXF11","segmento":"Renda Urbana","qtd":"270.0","pm":97.80,"pa":91.77,"inv":26407.14,"atu":24777.90,"lp":-1629.24,"var":-0.0617,"div":251.1},{"ativo":"TGAR11","segmento":"FII","qtd":"132.0","pm":86.15,"pa":52.47,"inv":11372.26,"atu":6926.04,"lp":-4446.22,"var":-0.3910,"div":95.04},{"ativo":"DIVO11","segmento":"ETF","qtd":"100.0","pm":133.47,"pa":121.79,"inv":13346.65,"atu":12179.00,"lp":-1167.65,"var":-0.0875,"div":0.0},{"ativo":"LFTB11","segmento":"ETF","qtd":"593.0","pm":119.47,"pa":122.80,"inv":70845.39,"atu":72820.40,"lp":1975.01,"var":0.0279,"div":0.0},{"ativo":"BBDC4","segmento":"Banco","qtd":"1000.0","pm":20.81,"pa":17.47,"inv":20808.90,"atu":17470.00,"lp":-3338.90,"var":-0.1605,"div":0.0},{"ativo":"BBSE3","segmento":"Seguro","qtd":"1100.0","pm":30.59,"pa":38.90,"inv":33646.34,"atu":42790.00,"lp":9143.66,"var":0.2718,"div":0.0},{"ativo":"CXSE3","segmento":"Seguro","qtd":"600.0","pm":17.14,"pa":19.64,"inv":10283.86,"atu":11784.00,"lp":1500.14,"var":0.1459,"div":0.0},{"ativo":"EQTL3","segmento":"Energia","qtd":"400.0","pm":39.11,"pa":37.05,"inv":15643.72,"atu":14820.00,"lp":-823.72,"var":-0.0527,"div":0.0},{"ativo":"ITSA4","segmento":"Banco","qtd":"1300.0","pm":12.54,"pa":12.79,"inv":16296.72,"atu":16627.00,"lp":330.28,"var":0.0203,"div":0.0},{"ativo":"TRPL4","segmento":"Energia","qtd":"500.0","pm":24.16,"pa":27.65,"inv":12081.86,"atu":13825.00,"lp":1743.14,"var":0.1443,"div":0.0},{"ativo":"VALE3","segmento":"Mineração","qtd":"100.0","pm":65.07,"pa":80.75,"inv":6506.94,"atu":8075.00,"lp":1568.06,"var":0.2410,"div":0.0}]
+};
+
+const brl = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2,maximumFractionDigits:2});
+const pct = v => (v*100).toFixed(2).replace('.',',') + '%';
+const PALETTE = ['#4ade80','#60a5fa','#a78bfa','#fbbf24','#f87171','#34d399','#818cf8','#fb923c','#38bdf8','#e879f9','#94a3b8','#facc15','#f472b6'];
+const GRID = 'rgba(255,255,255,0.05)';
+Chart.defaults.color = '#6b7aaa';
+Chart.defaults.borderColor = GRID;
+
+new Chart(document.getElementById('chartEvolucao'), {
+  type: 'line',
+  data: {
+    labels: D.evolucao_datas,
+    datasets: [{ label: 'Patrimônio', data: D.evolucao_valores, borderColor: '#4ade80', backgroundColor: 'rgba(74,222,128,0.08)', fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => brl(ctx.parsed.y) } } },
+    scales: {
+      x: { ticks: { maxTicksLimit: 8, maxRotation: 0 }, grid: { color: GRID } },
+      y: { ticks: { callback: v => 'R$ ' + (v/1e6).toFixed(1) + 'M' }, grid: { color: GRID } }
+    }
+  }
+});
+
+new Chart(document.getElementById('chartCategoria'), {
+  type: 'doughnut',
+  data: { labels: D.cat_labels, datasets: [{ data: D.cat_valores, backgroundColor: PALETTE, borderWidth: 2, borderColor: '#1a1f2e' }] },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '55%',
+    plugins: {
+      legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 10, padding: 8 } },
+      tooltip: { callbacks: { label: ctx => { const t = ctx.dataset.data.reduce((a,b)=>a+b,0); return ctx.label+': '+(ctx.parsed/t*100).toFixed(1)+'% ('+brl(ctx.parsed)+')'; } } }
+    }
+  }
+});
+
+new Chart(document.getElementById('chartCorretora'), {
+  type: 'doughnut',
+  data: { labels: D.corretoras.map(c=>c.nome), datasets: [{ data: D.corretoras.map(c=>c.valor), backgroundColor: ['#60a5fa','#a78bfa','#fbbf24','#34d399'], borderWidth: 2, borderColor: '#1a1f2e' }] },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '55%',
+    plugins: {
+      legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 10, padding: 8 } },
+      tooltip: { callbacks: { label: ctx => { const t = ctx.dataset.data.reduce((a,b)=>a+b,0); return ctx.label+': '+(ctx.parsed/t*100).toFixed(1)+'% ('+brl(ctx.parsed)+')'; } } }
+    }
+  }
+});
+
+const idxS = D.idx_labels.map((l,i)=>({l,v:D.idx_valores[i]})).sort((a,b)=>b.v-a.v);
+new Chart(document.getElementById('chartIndexador'), {
+  type: 'bar',
+  data: { labels: idxS.map(x=>x.l), datasets: [{ data: idxS.map(x=>x.v), backgroundColor: PALETTE, borderRadius: 4 }] },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => brl(ctx.parsed.x) } } },
+    scales: {
+      x: { ticks: { callback: v => 'R$ '+(v/1e3).toFixed(0)+'k' }, grid: { color: GRID } },
+      y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+const tbody = document.getElementById('tbodyAcoes');
+D.acoes.forEach(a => {
+  const pos = a.lp >= 0;
+  const seg = a.segmento ? `<span class="seg-badge">${a.segmento}</span>` : '';
+  tbody.innerHTML += `<tr>
+    <td><strong>${a.ativo}</strong></td><td>${seg}</td>
+    <td class="num">${parseFloat(a.qtd).toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+    <td class="num">${brl(a.pm)}</td><td class="num">${brl(a.pa)}</td>
+    <td class="num">${brl(a.inv)}</td><td class="num">${brl(a.atu)}</td>
+    <td class="num ${pos?'pos':'neg'}">${pos?'+':''}${brl(a.lp)}</td>
+    <td class="num ${pos?'pos':'neg'}">${pos?'+':''}${pct(a.var)}</td>
+    <td class="num">${a.div>0?brl(a.div):'—'}</td>
+  </tr>`;
+});
+</script>
+</body>
+</html>
