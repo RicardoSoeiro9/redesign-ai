@@ -13,10 +13,10 @@ model Model
 
 	annotation PBI_ProTooling = ["DevMode"]
 
-	ref table Dim_Ativo
-	ref table Fato_Valores
-	ref table Fato_PosicoesAcoes
-	ref table Dim_Fundos
-	ref table JurosReal
-	ref table VolumeCorretora
-	ref table Dim_Calendario
+ref table Dim_Ativo
+ref table Fato_Valores
+ref table Fato_PosicoesAcoes
+ref table Dim_Fundos
+ref table JurosReal
+ref table VolumeCorretora
+ref table Dim_Calendario
